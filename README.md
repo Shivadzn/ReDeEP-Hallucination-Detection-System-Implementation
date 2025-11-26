@@ -66,7 +66,7 @@ flowchart LR
     F --> G
     G --> H
     
-    classDef inputClass fill:#ecf0f1,stroke:#34495e,stroke-width:2px,color:#2c3e50
+    classDef inputClass fill:#ecf0f1,stroke:#34495e,stroke-width:2px,color:#fff
     classDef processClass fill:#3498db,stroke:#2980b9,stroke-width:2px,color:#fff
     classDef featureClass fill:#1abc9c,stroke:#16a085,stroke-width:2px,color:#fff
     classDef predClass fill:#e74c3c,stroke:#c0392b,stroke-width:2px,color:#fff
