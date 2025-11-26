@@ -1,8 +1,3 @@
-## 📝 File Content Templates
-
-### **1. README.md** (MOST IMPORTANT)
-
-```markdown
 # ReDeEP: Hallucination Detection in RAG Systems
 
 [![Python 3.8+](https://img.shields.io/badge/python-3.8+-blue.svg)](https://www.python.org/downloads/)
@@ -13,6 +8,7 @@ Implementation of **"Retrieval, Depth, and Flow: Understanding In-Context Exampl
 
 📄 [Original Paper](https://arxiv.org/abs/2410.11414) | 🎯 [Results](#results) | 📊 [Visualizations](#visualizations)
 
+---
 
 ## 🎯 What This Does
 
@@ -21,6 +17,8 @@ Detects when LLMs fabricate information ("hallucinate") by analyzing **attention
 1. **Retrieval (Re)**: How the model attends to retrieved context
 2. **Depth (De)**: Which layers process the information
 3. **Flow (F)**: How information flows through the network
+
+---
 
 ## 📊 Results
 
@@ -43,7 +41,7 @@ Detects when LLMs fabricate information ("hallucinate") by analyzing **attention
 - ✅ Correctly identifies 113/291 hallucinations (38.8% recall)
 - ⚠️ High false positive rate (467) suggests threshold tuning needed
 
-
+---
 
 ## 🚀 Quick Start
 
@@ -75,8 +73,8 @@ detector = HallucinationDetector(model, tokenizer)
 
 # Detect hallucinations
 results = detector.detect(
-    response="The Eiffel Tower was built in 1889.",
-    context="The Eiffel Tower construction began in 1887..."
+    response="The Eiffel Tower was built in 1889.",
+    context="The Eiffel Tower construction began in 1887..."
 )
 
 print(f"Hallucination score: {results['score']:.3f}")
@@ -102,14 +100,14 @@ bash scripts/run_full_pipeline.sh
 
 ```
 Input Text → LLaMA-2-7B (4-bit) → Attention Extraction → Feature Analysis → Hallucination Score
-                                         ↓
-                              32 Attention Heads
-                              (Layers 0-30)
-                                         ↓
-                              External Similarity +
-                              Parameter Knowledge
-                                         ↓
-                              Regression Model → Final Score
+                                         ↓
+                              32 Attention Heads
+                              (Layers 0-30)
+                                         ↓
+                              External Similarity +
+                              Parameter Knowledge
+                                         ↓
+                              Regression Model → Final Score
 ```
 
 See [ARCHITECTURE.md](docs/ARCHITECTURE.md) for detailed system design.
@@ -156,21 +154,21 @@ Key parameters can be adjusted in `configs/`:
 ```yaml
 # configs/model_config.yaml
 model:
-  name: "meta-llama/Llama-2-7b-hf"
-  quantization: "4bit"
-  max_memory: 
-    - "12GB"  # GPU 0
-    - "12GB"  # GPU 1
+  name: "meta-llama/Llama-2-7b-hf"
+  quantization: "4bit"
+  max_memory: 
+    - "12GB"  # GPU 0
+    - "12GB"  # GPU 1
 
 detection:
-  attention_heads: 32
-  sequence_length: 6000
-  batch_size: 1
+  attention_heads: 32
+  sequence_length: 6000
+  batch_size: 1
 
 regression:
-  top_external: 3
-  top_parameter: 4
-  alpha: 0.6
+  top_external: 3
+  top_parameter: 4
+  alpha: 0.6
 ```
 
 ---
@@ -239,11 +237,11 @@ If you use this implementation, please cite:
 
 ```bibtex
 @article{redeep2024,
-  title={Retrieval, Depth, and Flow: Understanding In-Context Examples through LLM Internals in RAG Systems},
-  author={[Original Authors]},
-  journal={ICLR},
-  year={2025},
-  url={https://arxiv.org/abs/2410.11414}
+  title={Retrieval, Depth, and Flow: Understanding In-Context Examples through LLM Internals in RAG Systems},
+  author={[Original Authors]},
+  journal={ICLR},
+  year={2025},
+  url={https://arxiv.org/abs/2410.11414}
 }
 ```
 
@@ -272,6 +270,6 @@ This project is licensed under the MIT License - see [LICENSE](LICENSE) file.
 ---
 
 **⭐ Star this repo if you find it useful!**
----
+```
 
-Want me to help you write any specific file? I can draft the complete README.md or any doc you need!
+---
