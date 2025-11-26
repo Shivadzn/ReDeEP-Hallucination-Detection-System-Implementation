@@ -33,6 +33,7 @@ The system demonstrates statistically significant separation between factual and
 
 ## Architecture
 
+```mermaid
 %%{init: {'theme':'base', 'themeVariables': { 'primaryColor':'#2c3e50','primaryTextColor':'#fff','primaryBorderColor':'#34495e','lineColor':'#7f8c8d','secondaryColor':'#3498db','tertiaryColor':'#2980b9'}}}%%
 flowchart LR
     subgraph Input ["Input Layer"]
