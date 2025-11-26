@@ -99,15 +99,31 @@ bash scripts/run_full_pipeline.sh
 ## 🏗️ Architecture
 
 ```
-Input Text → LLaMA-2-7B (4-bit) → Attention Extraction → Feature Analysis → Hallucination Score
-                                         ↓
-                              32 Attention Heads
-                              (Layers 0-30)
-                                         ↓
-                              External Similarity +
-                              Parameter Knowledge
-                                         ↓
-                              Regression Model → Final Score
+graph TD
+    subgraph Data Flow
+        A[Input Text] --> B(LLaMA-2-7B 4-bit Model)
+        B --> C{Attention & Activations Extraction}
+    end
+
+    subgraph Feature Engineering
+        C --> C1[All 32 Attention Heads (Layers 0-30)]
+        C1 --> D[Internal Feature Analysis]
+        D --> G(External Similarity + Parameter Knowledge)
+    end
+
+    subgraph Prediction
+        G --> H(Regression Model)
+        H --> E((Hallucination Score))
+    end
+
+    style A fill:#e0f2f7,stroke:#3498db,stroke-width:2px,color:#2c3e50
+    style B fill:#d0e6f2,stroke:#2980b9,stroke-width:2px,color:#2c3e50
+    style C fill:#f9f9e2,stroke:#f39c12,stroke-width:2px,color:#2c3e50
+    style C1 fill:#f5f5f5,stroke:#bdc3c7,stroke-width:1px,color:#2c3e50
+    style D fill:#eaf4e7,stroke:#27ae60,stroke-width:2px,color:#2c3e50
+    style G fill:#eaf4e7,stroke:#27ae60,stroke-width:2px,color:#2c3e50
+    style H fill:#f7e8f5,stroke:#8e44ad,stroke-width:2px,color:#2c3e50
+    style E fill:#f0f8ff,stroke:#1a6496,stroke-width:3px,color:#2c3e50,font-weight:bold
 ```
 
 See [ARCHITECTURE.md](docs/ARCHITECTURE.md) for detailed system design.
