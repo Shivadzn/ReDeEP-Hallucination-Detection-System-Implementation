@@ -34,24 +34,24 @@ The system demonstrates statistically significant separation between factual and
 ## Architecture
 
 ```mermaid
-%%{init: {'theme':'base', 'themeVariables': { 'primaryColor':'#2c3e50','primaryTextColor':'#fff','primaryBorderColor':'#34495e','lineColor':'#7f8c8d','secondaryColor':'#3498db','tertiaryColor':'#2980b9'}}}%%
+%%{init: {'theme':'base', 'themeVariables': { 'primaryColor':'#2c3e50','primaryTextColor':'#fff','primaryBorderColor':'#34495e','lineColor':'#7f8c8d','secondaryColor':'#3498db','tertiaryColor':'#2980b9','clusterBkg':'transparent','clusterBorder':'#7f8c8d'}}}%%
 flowchart LR
-    subgraph Input ["Input Layer"]
+    subgraph Input ["<span style='color: white;'>Input Layer</span>"]
         A["Input Text<br/>(Query + Context)"]
     end
     
-    subgraph Processing ["Model Processing"]
+    subgraph Processing ["<span style='color: white;'>Model Processing</span>"]
         B["LLaMA-2-7B<br/>Quantized (4-bit)"]
         C["Attention Extraction<br/>32 Heads × 31 Layers"]
     end
     
-    subgraph Features ["Feature Engineering"]
+    subgraph Features ["<span style='color: white;'>Feature Engineering</span>"]
         D["Internal Features<br/>Attention Patterns"]
         E["External Features<br/>Similarity Metrics"]
         F["Parameter Signals<br/>Model Statistics"]
     end
     
-    subgraph Prediction ["Prediction Layer"]
+    subgraph Prediction ["<span style='color: white;'>Prediction Layer</span>"]
         G["Ridge Regression<br/>(α = 0.6)"]
         H["Hallucination Score<br/>[0, 1]"]
     end
@@ -66,7 +66,7 @@ flowchart LR
     F --> G
     G --> H
     
-    classDef inputClass fill:#ecf0f1,stroke:#34495e,stroke-width:2px,color:#fff
+    classDef inputClass fill:#ecf0f1,stroke:#34495e,stroke-width:2px,color:#2c3e50
     classDef processClass fill:#3498db,stroke:#2980b9,stroke-width:2px,color:#fff
     classDef featureClass fill:#1abc9c,stroke:#16a085,stroke-width:2px,color:#fff
     classDef predClass fill:#e74c3c,stroke:#c0392b,stroke-width:2px,color:#fff
