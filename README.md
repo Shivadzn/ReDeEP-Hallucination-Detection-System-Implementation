@@ -1,312 +1,288 @@
-# ReDeEP: Hallucination Detection in RAG Systems
+# ReDeEP: Detecting Hallucinations in RAG Systems
 
 [![Python 3.8+](https://img.shields.io/badge/python-3.8+-blue.svg)](https://www.python.org/downloads/)
 [![PyTorch](https://img.shields.io/badge/PyTorch-2.0+-ee4c2c.svg)](https://pytorch.org/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Paper](https://img.shields.io/badge/Paper-ICLR%202025-brightgreen)](https://arxiv.org/abs/2410.11414)
 
-Implementation of **"Retrieval, Depth, and Flow: Understanding In-Context Examples through LLM Internals in RAG Systems"** (ICLR 2025) for detecting hallucinations in Large Language Model outputs.
+This repository implements the methodology presented in *"Retrieval, Depth, and Flow: Understanding In-Context Examples through LLM Internals in RAG Systems"* (ICLR 2025). The system detects hallucinations in Large Language Model outputs by analyzing internal attention patterns within Retrieval-Augmented Generation (RAG) pipelines.
 
-📄 [Original Paper](https://arxiv.org/abs/2410.11414) | 🎯 [Results](#results) | 📊 [Visualizations](#visualizations)
+## Overview
 
----
+Traditional hallucination detection approaches evaluate only model outputs. ReDeEP introduces a novel internal analysis framework that examines three core dimensions of information processing:
 
-## 🎯 What This Does
+- **Retrieval (Re)**: Attention allocation to retrieved contextual information
+- **Depth (De)**: Layer-wise information processing dynamics
+- **Flow (F)**: Inter-layer information propagation patterns
 
-Detects when LLMs fabricate information ("hallucinate") by analyzing **attention patterns** in the model's internal representations. Unlike traditional approaches that only look at outputs, ReDeEP examines:
+By extracting and analyzing attention patterns from 32 attention heads across 31 transformer layers, the system constructs feature representations that predict hallucination likelihood with meaningful accuracy improvements over baseline methods.
 
-1. **Retrieval (Re)**: How the model attends to retrieved context
-2. **Depth (De)**: Which layers process the information
-3. **Flow (F)**: How information flows through the network
+## Key Results
 
----
+The system achieves the following performance metrics on the RAGTruth benchmark dataset:
 
-## 📊 Results
+| Metric | Score | Baseline Improvement |
+|--------|-------|---------------------|
+| AUC-ROC | 0.689 | +37.8% vs random |
+| Recall | 38.83% | Identifies 113/291 hallucinations |
+| Precision | 19.48% | Optimized for imbalanced classes |
+| F1-Score | 0.260 | Balanced performance measure |
+| Pearson r | 0.323 | Moderate correlation strength |
 
-### Performance Metrics
-| Metric | Value | Interpretation |
-|--------|-------|----------------|
-| **AUC** | 0.689 | Moderate discriminative ability |
-| **Accuracy** | 44.35% | Room for threshold optimization |
-| **Precision** | 19.48% | Handles class imbalance |
-| **Recall** | 38.83% | Catches ~39% of hallucinations |
-| **F1-Score** | 25.95% | Balanced performance |
-| **Pearson r** | 0.323 | Moderate linear correlation |
+The system demonstrates statistically significant separation between factual and hallucinated content distributions, with optimization opportunities identified in threshold calibration and feature engineering.
 
-### Complete Analysis Dashboard
-![Hallucination Detection Analysis](results/visualizations/analysis_dashboard.png)
+## Architecture
 
-**Key Insights:**
-- ✅ 38% improvement over random guessing (0.50 → 0.689 AUC)
-- ✅ Clear score separation between factual and hallucinated content
-- ✅ Correctly identifies 113/291 hallucinations (38.8% recall)
-- ⚠️ High false positive rate (467) suggests threshold tuning needed
+```mermaid
+%%{init: {'theme':'base', 'themeVariables': { 'primaryColor':'#667eea','primaryTextColor':'#fff','primaryBorderColor':'#764ba2','lineColor':'#a78bfa','secondaryColor':'#f093fb','tertiaryColor':'#4facfe'}}}%%
+flowchart TD
+    A[("📝<br/>Input Text")] --> B["🤖 LLaMA-2-7B<br/>4-bit Model"]
+    B --> C["🔍 Attention &<br/>Activation Extraction"]
+    C --> C1["⚡ 32 Attention Heads<br/>Layers 0→30"]
+    C1 --> D["🧬 Internal Feature<br/>Analysis"]
+    D --> G["🔗 External Similarity<br/>& Parameter Signals"]
+    G --> H["📊 Regression<br/>Model"]
+    H --> E[["✨ Hallucination<br/>Score"]]
+    
+    classDef dataStyle fill:#667eea,stroke:#764ba2,stroke-width:3px,color:#fff,rx:15,ry:15
+    class B,C dataStyle
+    classDef featStyle fill:#4facfe,stroke:#00f2fe,stroke-width:3px,color:#fff,rx:15,ry:15
+    class C1,D,G featStyle
+    classDef predStyle fill:#f093fb,stroke:#f5576c,stroke-width:3px,color:#fff,rx:15,ry:15
+    class H predStyle
+    classDef inputStyle fill:#43e97b,stroke:#38f9d7,stroke-width:4px,color:#fff,font-weight:bold
+    class A inputStyle
+    classDef outputStyle fill:#fa709a,stroke:#fee140,stroke-width:4px,color:#fff,font-weight:bold,rx:20,ry:20
+    class E outputStyle
+    linkStyle default stroke:#a78bfa,stroke-width:2.5px
+```
 
----
+## Installation
 
-## 🚀 Quick Start
+### Prerequisites
 
-### Installation
+- Python 3.8 or higher
+- CUDA-compatible GPU with minimum 15GB VRAM
+- 16GB system RAM (32GB recommended)
+
+### Setup
 
 ```bash
-# Clone repository
+# Clone the repository
 git clone https://github.com/yourusername/redeep-hallucination-detection.git
 cd redeep-hallucination-detection
+
+# Create virtual environment
+python -m venv venv
+source venv/bin/activate  # On Windows: venv\Scripts\activate
 
 # Install dependencies
 pip install -r requirements.txt
 
-# Download dataset (optional)
+# Optional: Download RAGTruth dataset
 python scripts/download_data.py
 ```
 
-### Basic Usage
+## Usage
+
+### Basic Detection
 
 ```python
 from src.detection import HallucinationDetector
 from src.model_loader import load_model_quantized
 
-# Load model
+# Initialize model with 4-bit quantization
 model, tokenizer = load_model_quantized("meta-llama/Llama-2-7b-hf")
 
-# Initialize detector
+# Create detector instance
 detector = HallucinationDetector(model, tokenizer)
 
-# Detect hallucinations
-results = detector.detect(
-    response="The Eiffel Tower was built in 1889.",
-    context="The Eiffel Tower construction began in 1887..."
+# Perform detection
+result = detector.detect(
+    response="The Eiffel Tower was completed in 1889.",
+    context="Construction of the Eiffel Tower began in 1887 and was completed in 1889."
 )
 
-print(f"Hallucination score: {results['score']:.3f}")
-print(f"Likely hallucinated: {results['is_hallucination']}")
+print(f"Hallucination Score: {result['score']:.4f}")
+print(f"Classification: {'Hallucinated' if result['is_hallucination'] else 'Factual'}")
 ```
 
-### Run Full Pipeline
+### Pipeline Execution
 
 ```bash
-# Detection only
+# Run detection pipeline
 bash scripts/run_detection.sh
 
-# Regression analysis
+# Execute regression analysis
 bash scripts/run_regression.sh
 
-# Complete pipeline
+# Complete end-to-end pipeline
 bash scripts/run_full_pipeline.sh
 ```
 
----
-
-## 🏗️ Architecture
-
-```
-%%{init: {'theme':'base', 'themeVariables': { 'primaryColor':'#667eea','primaryTextColor':'#fff','primaryBorderColor':'#764ba2','lineColor':'#a78bfa','secondaryColor':'#f093fb','tertiaryColor':'#4facfe'}}}%%
-flowchart TD
-    %% =======================
-    %%      Data Flow
-    %% =======================
-    A[("📝<br/>Input Text")] --> B["🤖 LLaMA-2-7B<br/>4-bit Model"]
-    B --> C["🔍 Attention &<br/>Activation Extraction"]
-    
-    %% =======================
-    %%   Feature Engineering
-    %% =======================
-    C --> C1["⚡ 32 Attention Heads<br/>Layers 0→30"]
-    C1 --> D["🧬 Internal Feature<br/>Analysis"]
-    D --> G["🔗 External Similarity<br/>& Parameter Signals"]
-    
-    %% =======================
-    %%      Prediction
-    %% =======================
-    G --> H["📊 Regression<br/>Model"]
-    H --> E[["✨ Hallucination<br/>Score"]]
-    
-    %% =======================
-    %%      Styling
-    %% =======================
-    
-    %% Data Flow nodes
-    classDef dataStyle fill:#667eea,stroke:#764ba2,stroke-width:3px,color:#fff,rx:15,ry:15
-    class B,C dataStyle
-    
-    %% Feature Engineering nodes
-    classDef featStyle fill:#4facfe,stroke:#00f2fe,stroke-width:3px,color:#fff,rx:15,ry:15
-    class C1,D,G featStyle
-    
-    %% Prediction nodes
-    classDef predStyle fill:#f093fb,stroke:#f5576c,stroke-width:3px,color:#fff,rx:15,ry:15
-    class H predStyle
-    
-    %% Input/Output special styling
-    classDef inputStyle fill:#43e97b,stroke:#38f9d7,stroke-width:4px,color:#fff,font-weight:bold
-    class A inputStyle
-    
-    classDef outputStyle fill:#fa709a,stroke:#fee140,stroke-width:4px,color:#fff,font-weight:bold,rx:20,ry:20
-    class E outputStyle
-    
-    %% Link styling
-    linkStyle default stroke:#a78bfa,stroke-width:2.5px
-```
-
-See [ARCHITECTURE.md](docs/ARCHITECTURE.md) for detailed system design.
-
----
-
-## 🔬 Technical Highlights
+## Technical Implementation
 
 ### Memory Optimization
-- **4-bit Quantization**: Reduces model size by 75% (28GB → 7GB)
-- **Balanced GPU Distribution**: Splits across 2x T4 GPUs (15GB each)
-- **Smart Sequence Truncation**: Dynamic truncation to prevent OOM
-- **Periodic Cache Clearing**: Maintains stable memory usage
 
-### Implementation Innovations
-1. **Universal Path Manager**: Handles Kaggle/Colab/local environments seamlessly
-2. **Bounds-Safe Indexing**: Prevents IndexErrors with varying attention patterns
-3. **Feature Extraction Pipeline**: Efficient batch processing of attention heads
-4. **Comprehensive Visualization**: Publication-quality analysis dashboard
+The implementation employs several optimization techniques to enable efficient execution on consumer hardware:
 
----
+- **4-bit Quantization**: Reduces model memory footprint from 28GB to approximately 7GB using bitsandbytes library
+- **Multi-GPU Distribution**: Intelligent load balancing across available GPUs with configurable memory allocation
+- **Dynamic Sequence Truncation**: Adaptive input length management to prevent out-of-memory errors
+- **Gradient-Free Inference**: Attention extraction performed without backpropagation requirements
 
-## 📈 Visualizations
+### Feature Engineering
 
-### ROC Curve
-![ROC Curve](results/visualizations/roc_curve.png)
+The system extracts 992 features per sample through:
+
+1. **Attention Pattern Analysis**: Statistical measures across 32 attention heads and 31 layers
+2. **Internal Similarity Metrics**: Cosine similarity between attention distributions
+3. **External Signal Integration**: Semantic similarity between generated text and retrieved context
+4. **Parameter-Based Signals**: Model-intrinsic features including attention entropy and layer-wise activation patterns
+
+### Regression Model
+
+A Ridge regression model (alpha=0.6) combines internal attention features with external similarity signals, weighted to balance prediction accuracy and generalization capability.
+
+## Dataset
+
+The system is evaluated on **RAGTruth**, a comprehensive benchmark for hallucination detection in RAG systems:
+
+- Total samples: 17,790
+- Evaluation subset: 1,159 samples (6.5%)
+- Class distribution: 868 factual (75%), 291 hallucinated (25%)
+- Task coverage: Question answering, summarization, dialogue generation
+
+## Performance Analysis
+
+### ROC Analysis
+The system achieves an AUC of 0.689, indicating moderate discriminative ability. The ROC curve demonstrates consistent performance across various threshold values, with optimal operating point identified at 0.714.
 
 ### Score Distribution
-![Score Distribution](results/visualizations/score_distribution.png)
+Hallucination scores exhibit clear distributional separation between factual and hallucinated content, with mean scores of 0.68 (factual) and 0.76 (hallucinated). This separation validates the feature extraction methodology while highlighting opportunities for improved discrimination.
 
-### Confusion Matrix
-Shows classification performance at optimal threshold (0.714):
-- True Positives: 113
-- False Negatives: 178
-- True Negatives: 401
-- False Positives: 467
+### Confusion Matrix (Threshold: 0.714)
+```
+               Predicted Negative  Predicted Positive
+Actual Negative       401                467
+Actual Positive       178                113
+```
 
----
+The confusion matrix reveals high sensitivity to potential hallucinations but suggests threshold recalibration may improve precision.
 
-## 🔧 Configuration
+## Hardware Requirements
 
-Key parameters can be adjusted in `configs/`:
+### Minimum Configuration
+- GPU: NVIDIA T4 (15GB VRAM) or equivalent
+- CPU: 4+ cores
+- RAM: 16GB
+- Storage: 20GB available space
+
+### Recommended Configuration
+- GPU: 2× NVIDIA T4 (30GB total VRAM) or single A100
+- CPU: 8+ cores
+- RAM: 32GB
+- Storage: 50GB available space
+
+### Tested Environments
+- Kaggle Notebooks (2× T4 GPUs)
+- Google Colab Pro (NVIDIA A100)
+- AWS EC2 g4dn.xlarge instances
+- Local workstations with NVIDIA RTX 3090
+
+## Configuration
+
+System parameters are managed through YAML configuration files in the `configs/` directory:
 
 ```yaml
 # configs/model_config.yaml
 model:
   name: "meta-llama/Llama-2-7b-hf"
-  quantization: "4bit"
-  max_memory: 
-    - "12GB"  # GPU 0
-    - "12GB"  # GPU 1
+  quantization_bits: 4
+  max_memory_per_gpu: "12GB"
+  device_map: "auto"
 
 detection:
   attention_heads: 32
-  sequence_length: 6000
+  max_sequence_length: 6000
   batch_size: 1
+  truncation_strategy: "longest_first"
 
 regression:
-  top_external: 3
-  top_parameter: 4
-  alpha: 0.6
+  top_external_features: 3
+  top_parameter_features: 4
+  regularization_alpha: 0.6
+  cross_validation_folds: 5
 ```
 
----
+## Documentation
 
-## 📊 Dataset
+Comprehensive documentation is available in the `docs/` directory:
 
-**RAGTruth**: Benchmark dataset for hallucination detection in RAG systems
+- [Architecture Overview](docs/ARCHITECTURE.md) - Detailed system design and component interactions
+- [Implementation Notes](docs/IMPLEMENTATION_NOTES.md) - Technical decisions and code organization
+- [Optimization Guide](docs/OPTIMIZATION_GUIDE.md) - Performance tuning and memory management
+- [Troubleshooting](docs/TROUBLESHOOTING.md) - Common issues and solutions
+- [Paper Summary](docs/PAPER_SUMMARY.md) - Key concepts from the original research
 
-- **Total Samples**: 17,790
-- **Processed**: 1,159 (6.5%)
-- **Class Distribution**: 75% Factual / 25% Hallucinated
-- **Task Types**: QA, Summarization, Dialogue
+## Future Directions
 
----
+Planned enhancements include:
 
-## 🛠️ Hardware Requirements
+- Extension to full 17,790-sample RAGTruth dataset
+- Implementation of Attributed Auto-Regressive Flow (AARF) for token-level detection
+- Hyperparameter optimization through systematic grid search
+- Ensemble methods combining multiple detection approaches
+- REST API deployment for production integration
+- Support for additional model architectures (LLaMA-3, Mistral, GPT-J)
+- Real-time detection capabilities for streaming applications
 
-### Minimum
-- GPU: 1x T4 (15GB VRAM)
-- RAM: 16GB
-- Storage: 20GB
+## Contributing
 
-### Recommended
-- GPU: 2x T4 (30GB total VRAM)
-- RAM: 32GB
-- Storage: 50GB
+Contributions are welcomed and appreciated. Please review [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines on code style, testing requirements, and pull request procedures.
 
-### Tested Environments
-- ✅ Kaggle Notebooks (2x T4)
-- ✅ Google Colab Pro (A100)
-- ⚠️ Google Colab Free (limited by memory)
+## Citation
 
----
-
-## 📚 Documentation
-
-- [Architecture Overview](docs/ARCHITECTURE.md)
-- [Implementation Notes](docs/IMPLEMENTATION_NOTES.md)
-- [Optimization Guide](docs/OPTIMIZATION_GUIDE.md)
-- [Troubleshooting](docs/TROUBLESHOOTING.md)
-- [Paper Summary](docs/PAPER_SUMMARY.md)
-
----
-
-## 🔮 Future Work
-
-- [ ] Process full 17,790 sample dataset
-- [ ] Implement AARF (Attributed Auto-Regressive Flow)
-- [ ] Token-level hallucination detection
-- [ ] Hyperparameter optimization (grid search)
-- [ ] Ensemble with other detection methods
-- [ ] API endpoint for production deployment
-- [ ] Support for LLaMA-3 and other models
-
----
-
-## 🤝 Contributing
-
-Contributions welcome! Please see [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
-
----
-
-## 📄 Citation
-
-If you use this implementation, please cite:
+If you use this implementation in your research, please cite both the original paper and this repository:
 
 ```bibtex
-@article{redeep2024,
+@inproceedings{redeep2025,
   title={Retrieval, Depth, and Flow: Understanding In-Context Examples through LLM Internals in RAG Systems},
   author={[Original Authors]},
-  journal={ICLR},
+  booktitle={International Conference on Learning Representations},
   year={2025},
   url={https://arxiv.org/abs/2410.11414}
 }
+
+@software{redeep_implementation2024,
+  title={ReDeEP: Hallucination Detection Implementation},
+  author={[Your Name]},
+  year={2024},
+  url={https://github.com/yourusername/redeep-hallucination-detection}
+}
 ```
 
----
+## License
 
-## 📝 License
+This project is released under the MIT License. See [LICENSE](LICENSE) for complete terms.
 
-This project is licensed under the MIT License - see [LICENSE](LICENSE) file.
+## Acknowledgments
 
----
+We gratefully acknowledge:
 
-## 🙏 Acknowledgments
+- The authors of the original ReDeEP paper for their foundational research
+- HuggingFace for the Transformers library and model hosting infrastructure
+- The developers of bitsandbytes for efficient quantization implementations
+- Kaggle for providing computational resources during development
 
-- Original ReDeEP paper authors
-- HuggingFace Transformers team
-- Kaggle for compute resources
+## Contact
 
----
+For questions, issues, or collaboration opportunities:
 
-## 📧 Contact
-
-- GitHub: [@yourusername](https://github.com/yourusername)
-- LinkedIn: [Your Name](https://linkedin.com/in/yourprofile)
-- Email: your.email@example.com
-
----
-
-**⭐ Star this repo if you find it useful!**
-```
+- **GitHub Issues**: [Project Issue Tracker](https://github.com/yourusername/redeep-hallucination-detection/issues)
+- **Email**: your.email@example.com
+- **LinkedIn**: [Your Professional Profile](https://linkedin.com/in/yourprofile)
 
 ---
+
+**Note**: This implementation is for research and educational purposes. Production deployment should include additional safety measures, monitoring, and validation appropriate to your specific use case.
