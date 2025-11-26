@@ -99,31 +99,52 @@ bash scripts/run_full_pipeline.sh
 ## 🏗️ Architecture
 
 ```
-graph TD
-    subgraph Data Flow
-        A[Input Text] --> B(LLaMA-2-7B 4-bit Model)
-        B --> C{Attention & Activations Extraction}
-    end
-
-    subgraph Feature Engineering
-        C --> C1[All 32 Attention Heads (Layers 0-30)]
-        C1 --> D[Internal Feature Analysis]
-        D --> G(External Similarity + Parameter Knowledge)
-    end
-
-    subgraph Prediction
-        G --> H(Regression Model)
-        H --> E((Hallucination Score))
-    end
-
-    style A fill:#e0f2f7,stroke:#3498db,stroke-width:2px,color:#2c3e50
-    style B fill:#d0e6f2,stroke:#2980b9,stroke-width:2px,color:#2c3e50
-    style C fill:#f9f9e2,stroke:#f39c12,stroke-width:2px,color:#2c3e50
-    style C1 fill:#f5f5f5,stroke:#bdc3c7,stroke-width:1px,color:#2c3e50
-    style D fill:#eaf4e7,stroke:#27ae60,stroke-width:2px,color:#2c3e50
-    style G fill:#eaf4e7,stroke:#27ae60,stroke-width:2px,color:#2c3e50
-    style H fill:#f7e8f5,stroke:#8e44ad,stroke-width:2px,color:#2c3e50
-    style E fill:#f0f8ff,stroke:#1a6496,stroke-width:3px,color:#2c3e50,font-weight:bold
+%%{init: {'theme':'base', 'themeVariables': { 'primaryColor':'#667eea','primaryTextColor':'#fff','primaryBorderColor':'#764ba2','lineColor':'#a78bfa','secondaryColor':'#f093fb','tertiaryColor':'#4facfe'}}}%%
+flowchart TD
+    %% =======================
+    %%      Data Flow
+    %% =======================
+    A[("📝<br/>Input Text")] --> B["🤖 LLaMA-2-7B<br/>4-bit Model"]
+    B --> C["🔍 Attention &<br/>Activation Extraction"]
+    
+    %% =======================
+    %%   Feature Engineering
+    %% =======================
+    C --> C1["⚡ 32 Attention Heads<br/>Layers 0→30"]
+    C1 --> D["🧬 Internal Feature<br/>Analysis"]
+    D --> G["🔗 External Similarity<br/>& Parameter Signals"]
+    
+    %% =======================
+    %%      Prediction
+    %% =======================
+    G --> H["📊 Regression<br/>Model"]
+    H --> E[["✨ Hallucination<br/>Score"]]
+    
+    %% =======================
+    %%      Styling
+    %% =======================
+    
+    %% Data Flow nodes
+    classDef dataStyle fill:#667eea,stroke:#764ba2,stroke-width:3px,color:#fff,rx:15,ry:15
+    class B,C dataStyle
+    
+    %% Feature Engineering nodes
+    classDef featStyle fill:#4facfe,stroke:#00f2fe,stroke-width:3px,color:#fff,rx:15,ry:15
+    class C1,D,G featStyle
+    
+    %% Prediction nodes
+    classDef predStyle fill:#f093fb,stroke:#f5576c,stroke-width:3px,color:#fff,rx:15,ry:15
+    class H predStyle
+    
+    %% Input/Output special styling
+    classDef inputStyle fill:#43e97b,stroke:#38f9d7,stroke-width:4px,color:#fff,font-weight:bold
+    class A inputStyle
+    
+    classDef outputStyle fill:#fa709a,stroke:#fee140,stroke-width:4px,color:#fff,font-weight:bold,rx:20,ry:20
+    class E outputStyle
+    
+    %% Link styling
+    linkStyle default stroke:#a78bfa,stroke-width:2.5px
 ```
 
 See [ARCHITECTURE.md](docs/ARCHITECTURE.md) for detailed system design.
