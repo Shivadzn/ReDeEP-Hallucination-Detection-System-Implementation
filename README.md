@@ -13,7 +13,6 @@ Implementation of **"Retrieval, Depth, and Flow: Understanding In-Context Exampl
 
 📄 [Original Paper](https://arxiv.org/abs/2410.11414) | 🎯 [Results](#results) | 📊 [Visualizations](#visualizations)
 
----
 
 ## 🎯 What This Does
 
@@ -22,8 +21,6 @@ Detects when LLMs fabricate information ("hallucinate") by analyzing **attention
 1. **Retrieval (Re)**: How the model attends to retrieved context
 2. **Depth (De)**: Which layers process the information
 3. **Flow (F)**: How information flows through the network
-
----
 
 ## 📊 Results
 
@@ -46,7 +43,7 @@ Detects when LLMs fabricate information ("hallucinate") by analyzing **attention
 - ✅ Correctly identifies 113/291 hallucinations (38.8% recall)
 - ⚠️ High false positive rate (467) suggests threshold tuning needed
 
----
+
 
 ## 🚀 Quick Start
 
