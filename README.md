@@ -33,28 +33,51 @@ The system demonstrates statistically significant separation between factual and
 
 ## Architecture
 
-```mermaid
-%%{init: {'theme':'base', 'themeVariables': { 'primaryColor':'#667eea','primaryTextColor':'#fff','primaryBorderColor':'#764ba2','lineColor':'#a78bfa','secondaryColor':'#f093fb','tertiaryColor':'#4facfe'}}}%%
-flowchart TD
-    A[("📝<br/>Input Text")] --> B["🤖 LLaMA-2-7B<br/>4-bit Model"]
-    B --> C["🔍 Attention &<br/>Activation Extraction"]
-    C --> C1["⚡ 32 Attention Heads<br/>Layers 0→30"]
-    C1 --> D["🧬 Internal Feature<br/>Analysis"]
-    D --> G["🔗 External Similarity<br/>& Parameter Signals"]
-    G --> H["📊 Regression<br/>Model"]
-    H --> E[["✨ Hallucination<br/>Score"]]
+%%{init: {'theme':'base', 'themeVariables': { 'primaryColor':'#2c3e50','primaryTextColor':'#fff','primaryBorderColor':'#34495e','lineColor':'#7f8c8d','secondaryColor':'#3498db','tertiaryColor':'#2980b9'}}}%%
+flowchart LR
+    subgraph Input ["Input Layer"]
+        A["Input Text<br/>(Query + Context)"]
+    end
     
-    classDef dataStyle fill:#667eea,stroke:#764ba2,stroke-width:3px,color:#fff,rx:15,ry:15
-    class B,C dataStyle
-    classDef featStyle fill:#4facfe,stroke:#00f2fe,stroke-width:3px,color:#fff,rx:15,ry:15
-    class C1,D,G featStyle
-    classDef predStyle fill:#f093fb,stroke:#f5576c,stroke-width:3px,color:#fff,rx:15,ry:15
-    class H predStyle
-    classDef inputStyle fill:#43e97b,stroke:#38f9d7,stroke-width:4px,color:#fff,font-weight:bold
-    class A inputStyle
-    classDef outputStyle fill:#fa709a,stroke:#fee140,stroke-width:4px,color:#fff,font-weight:bold,rx:20,ry:20
-    class E outputStyle
-    linkStyle default stroke:#a78bfa,stroke-width:2.5px
+    subgraph Processing ["Model Processing"]
+        B["LLaMA-2-7B<br/>Quantized (4-bit)"]
+        C["Attention Extraction<br/>32 Heads × 31 Layers"]
+    end
+    
+    subgraph Features ["Feature Engineering"]
+        D["Internal Features<br/>Attention Patterns"]
+        E["External Features<br/>Similarity Metrics"]
+        F["Parameter Signals<br/>Model Statistics"]
+    end
+    
+    subgraph Prediction ["Prediction Layer"]
+        G["Ridge Regression<br/>(α = 0.6)"]
+        H["Hallucination Score<br/>[0, 1]"]
+    end
+    
+    A --> B
+    B --> C
+    C --> D
+    C --> E
+    C --> F
+    D --> G
+    E --> G
+    F --> G
+    G --> H
+    
+    classDef inputClass fill:#ecf0f1,stroke:#34495e,stroke-width:2px,color:#2c3e50
+    classDef processClass fill:#3498db,stroke:#2980b9,stroke-width:2px,color:#fff
+    classDef featureClass fill:#1abc9c,stroke:#16a085,stroke-width:2px,color:#fff
+    classDef predClass fill:#e74c3c,stroke:#c0392b,stroke-width:2px,color:#fff
+    classDef outputClass fill:#f39c12,stroke:#d68910,stroke-width:3px,color:#fff
+    
+    class A inputClass
+    class B,C processClass
+    class D,E,F featureClass
+    class G predClass
+    class H outputClass
+    
+    linkStyle default stroke:#7f8c8d,stroke-width:2px
 ```
 
 ## Installation
