@@ -40,7 +40,7 @@ By extracting and analyzing attention patterns from 32 attention heads across 31
 
 ### ROC Curve Analysis
 
-![ROC Curve](results/visualizations/roc_curve.png)
+![ROC Curve](log/kaggle/working/ReDeEP-ICLR/log/test_llama2_7B/visualizations/roc_curve.png)
 
 The ROC curve demonstrates **consistent performance across thresholds**, achieving an AUC of 0.689. This represents a **37.8% improvement over random classification** (AUC = 0.5) and validates the effectiveness of attention-based feature extraction.
 
@@ -53,7 +53,7 @@ The ROC curve demonstrates **consistent performance across thresholds**, achievi
 
 ### Score Distribution
 
-![Score Distribution](results/visualizations/score_distribution.png)
+![Score Distribution](log/kaggle/working/ReDeEP-ICLR/log/test_llama2_7B/visualizations/score_distribution.png)
 
 **Distribution Analysis**:
 - **Factual samples** (blue): Mean score ≈ 0.68, concentrated in lower range
