@@ -17,7 +17,7 @@ By extracting and analyzing attention patterns from 32 attention heads across 31
 
 ### Complete Analysis Dashboard
 
-![Hallucination Detection Analysis](results/visualizations/analysis_dashboard.png)
+![Hallucination Detection Analysis](log/kaggle/working/ReDeEP-ICLR/log/test_llama2_7B/hallucination_detection_analysis.png)
 
 *Comprehensive 6-panel analysis showing ROC curve, precision-recall trade-offs, score distributions, class balance, confusion matrix, and key performance metrics.*
 
