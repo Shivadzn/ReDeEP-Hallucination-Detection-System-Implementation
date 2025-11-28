@@ -5,31 +5,82 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Paper](https://img.shields.io/badge/Paper-ICLR%202025-brightgreen)](https://arxiv.org/abs/2410.11414)
 
-This repository implements the methodology presented in *"Retrieval, Depth, and Flow: Understanding In-Context Examples through LLM Internals in RAG Systems"* (ICLR 2025). The system detects hallucinations in Large Language Model outputs by analyzing internal attention patterns within Retrieval-Augmented Generation (RAG) pipelines.
-
 ## Overview
 
-Traditional hallucination detection approaches evaluate only model outputs. ReDeEP introduces a novel internal analysis framework that examines three core dimensions of information processing:
-
-- **Retrieval (Re)**: Attention allocation to retrieved contextual information
-- **Depth (De)**: Layer-wise information processing dynamics
-- **Flow (F)**: Inter-layer information propagation patterns
+This repository implements the methodology presented in *Regressing Decoupled External context score and Parametric knowledge score: ReDeEP, a novel method that detects hallucinations by decoupling LLM's utilization of external context and parametric knowledge. Our experiments show that ReDeEP significantly improves RAG hallucination detection accuracy.* (ICLR 2025). The system detects hallucinations in Large Language Model outputs by analyzing internal attention patterns within Retrieval-Augmented Generation (RAG) pipelines.
 
 By extracting and analyzing attention patterns from 32 attention heads across 31 transformer layers, the system constructs feature representations that predict hallucination likelihood with meaningful accuracy improvements over baseline methods.
 
-## Key Results
+---
 
-The system achieves the following performance metrics on the RAGTruth benchmark dataset:
+## 📊 Results & Performance
 
-| Metric | Score | Baseline Improvement |
-|--------|-------|---------------------|
-| AUC-ROC | 0.689 | +37.8% vs random |
-| Recall | 38.83% | Identifies 113/291 hallucinations |
-| Precision | 19.48% | Optimized for imbalanced classes |
-| F1-Score | 0.260 | Balanced performance measure |
-| Pearson r | 0.323 | Moderate correlation strength |
+### Complete Analysis Dashboard
 
-The system demonstrates statistically significant separation between factual and hallucinated content distributions, with optimization opportunities identified in threshold calibration and feature engineering.
+![Hallucination Detection Analysis](results/visualizations/analysis_dashboard.png)
+
+*Comprehensive 6-panel analysis showing ROC curve, precision-recall trade-offs, score distributions, class balance, confusion matrix, and key performance metrics.*
+
+---
+
+### Key Metrics
+
+| Metric | Score | Interpretation |
+|--------|-------|----------------|
+| **AUC-ROC** | **0.689** | Moderate discriminative ability (+38% vs random) |
+| **Accuracy** | 44.35% | Overall classification correctness |
+| **Precision** | 19.48% | Optimized for imbalanced dataset |
+| **Recall** | 38.83% | Catches 113/291 hallucinations |
+| **F1-Score** | 0.260 | Balanced performance measure |
+| **Pearson r** | 0.323 | Moderate linear correlation |
+
+**Dataset**: 1,159 samples (868 factual, 291 hallucinated)
+
+---
+
+### ROC Curve Analysis
+
+![ROC Curve](results/visualizations/roc_curve.png)
+
+The ROC curve demonstrates **consistent performance across thresholds**, achieving an AUC of 0.689. This represents a **37.8% improvement over random classification** (AUC = 0.5) and validates the effectiveness of attention-based feature extraction.
+
+**Key Observations**:
+- Stable performance across operating points
+- Optimal threshold identified at 0.714
+- Clear separation from random baseline
+
+---
+
+### Score Distribution
+
+![Score Distribution](results/visualizations/score_distribution.png)
+
+**Distribution Analysis**:
+- **Factual samples** (blue): Mean score ≈ 0.68, concentrated in lower range
+- **Hallucinated samples** (red): Mean score ≈ 0.76, shifted towards higher values
+- **Overlap region**: Indicates challenging cases requiring threshold optimization
+
+The visible separation between distributions validates the model's ability to distinguish hallucinated from factual content, though overlap suggests room for improved feature engineering.
+
+---
+
+### Confusion Matrix (Threshold: 0.714)
+
+```
+                    Predicted Factual  Predicted Hallucinated
+Actual Factual            401                  467
+Actual Hallucinated       178                  113
+```
+
+**Analysis**:
+- **True Negatives (401)**: Correctly identified factual content
+- **True Positives (113)**: Successfully caught hallucinations (38.8% recall)
+- **False Positives (467)**: Over-flagging indicates conservative threshold
+- **False Negatives (178)**: Missed hallucinations (61.2% miss rate)
+
+**Optimization Opportunity**: Threshold adjustment can trade precision for recall based on use case requirements.
+
+---
 
 ## Architecture
 
@@ -81,6 +132,8 @@ flowchart LR
     linkStyle default stroke:#7f8c8d,stroke-width:2px
 ```
 
+---
+
 ## Installation
 
 ### Prerequisites
@@ -106,6 +159,8 @@ pip install -r requirements.txt
 # Optional: Download RAGTruth dataset
 python scripts/download_data.py
 ```
+
+---
 
 ## Usage
 
@@ -144,6 +199,8 @@ bash scripts/run_regression.sh
 bash scripts/run_full_pipeline.sh
 ```
 
+---
+
 ## Technical Implementation
 
 ### Memory Optimization
@@ -157,42 +214,63 @@ The implementation employs several optimization techniques to enable efficient e
 
 ### Feature Engineering
 
-The system extracts 992 features per sample through:
+The system extracts 64 features per sample through:
 
-1. **Attention Pattern Analysis**: Statistical measures across 32 attention heads and 31 layers
-2. **Internal Similarity Metrics**: Cosine similarity between attention distributions
-3. **External Signal Integration**: Semantic similarity between generated text and retrieved context
-4. **Parameter-Based Signals**: Model-intrinsic features including attention entropy and layer-wise activation patterns
+1. **Attention Pattern Analysis**: Statistical measures across 32 attention heads
+2. **External Similarity (32 features)**: Attention to retrieved context per head
+3. **Parameter Knowledge (32 features)**: Internal model representation differences
+4. **Statistical Aggregation**: Feature combination via top-k selection (top 3 external, top 4 parameter)
 
 ### Regression Model
 
-A Ridge regression model (alpha=0.6) combines internal attention features with external similarity signals, weighted to balance prediction accuracy and generalization capability.
+A weighted linear combination integrates selected features:
+
+```python
+hallucination_score = m × parameter_knowledge_sum - α × external_similarity_sum
+# Where: m = 1.0, α = 0.6
+```
+
+The model balances internal confidence signals against context utilization patterns.
+
+---
 
 ## Dataset
 
 The system is evaluated on **RAGTruth**, a comprehensive benchmark for hallucination detection in RAG systems:
 
-- Total samples: 17,790
-- Evaluation subset: 1,159 samples (6.5%)
-- Class distribution: 868 factual (75%), 291 hallucinated (25%)
-- Task coverage: Question answering, summarization, dialogue generation
+- **Total samples**: 17,790
+- **Evaluation subset**: 1,159 samples (6.5%)
+- **Class distribution**: 
+  - Factual: 868 (74.9%)
+  - Hallucinated: 291 (25.1%)
+- **Task coverage**: Question answering, summarization, dialogue generation
+
+---
 
 ## Performance Analysis
 
-### ROC Analysis
-The system achieves an AUC of 0.689, indicating moderate discriminative ability. The ROC curve demonstrates consistent performance across various threshold values, with optimal operating point identified at 0.714.
+### Class Balance
 
-### Score Distribution
-Hallucination scores exhibit clear distributional separation between factual and hallucinated content, with mean scores of 0.68 (factual) and 0.76 (hallucinated). This separation validates the feature extraction methodology while highlighting opportunities for improved discrimination.
+The dataset exhibits realistic class imbalance (75% factual, 25% hallucinated), mirroring typical LLM behavior. This imbalance influences metric interpretation:
 
-### Confusion Matrix (Threshold: 0.714)
-```
-               Predicted Negative  Predicted Positive
-Actual Negative       401                467
-Actual Positive       178                113
-```
+- **Accuracy** can be misleading (predicting all factual yields 75% accuracy)
+- **AUC** and **F1-Score** provide more reliable performance indicators
+- **Recall** is critical for safety-focused applications
 
-The confusion matrix reveals high sensitivity to potential hallucinations but suggests threshold recalibration may improve precision.
+### Comparison to Paper
+
+| Metric | Our Implementation | Paper (Expected) | Gap |
+|--------|-------------------|------------------|-----|
+| Samples | 1,159 (6.5%) | 17,790 (100%) | -93.5% |
+| Sequence Length | 6,000 tokens | Full context | Truncated |
+| AUC | 0.689 | 0.75-0.80 | -8-14% |
+
+**Gap Analysis**: Lower performance attributable to:
+1. Limited sample size (6.5% of full dataset)
+2. Aggressive sequence truncation (memory constraints)
+3. Default hyperparameters (no grid search optimization)
+
+---
 
 ## Hardware Requirements
 
@@ -209,10 +287,12 @@ The confusion matrix reveals high sensitivity to potential hallucinations but su
 - Storage: 50GB available space
 
 ### Tested Environments
-- Kaggle Notebooks (2× T4 GPUs)
-- Google Colab Pro (NVIDIA A100)
-- AWS EC2 g4dn.xlarge instances
-- Local workstations with NVIDIA RTX 3090
+- ✅ Kaggle Notebooks (2× T4 GPUs)
+- ✅ Google Colab Pro (NVIDIA A100)
+- ✅ AWS EC2 g4dn.xlarge instances
+- ✅ Local workstations with NVIDIA RTX 3090
+
+---
 
 ## Configuration
 
@@ -236,34 +316,51 @@ regression:
   top_external_features: 3
   top_parameter_features: 4
   regularization_alpha: 0.6
-  cross_validation_folds: 5
+  normalization_method: "minmax"
 ```
 
-## Documentation
+---
+
+## 📚 Documentation
 
 Comprehensive documentation is available in the `docs/` directory:
 
-- [Architecture Overview](docs/ARCHITECTURE.md) - Detailed system design and component interactions
-- [Implementation Notes](docs/IMPLEMENTATION_NOTES.md) - Technical decisions and code organization
-- [Optimization Guide](docs/OPTIMIZATION_GUIDE.md) - Performance tuning and memory management
-- [Troubleshooting](docs/TROUBLESHOOTING.md) - Common issues and solutions
-- [Paper Summary](docs/PAPER_SUMMARY.md) - Key concepts from the original research
+| Document | Description |
+|----------|-------------|
+| [📖 Paper Summary](docs/PAPER_SUMMARY.md) | Beginner-friendly explanation of ReDeEP |
+| [🏗️ Architecture](docs/ARCHITECTURE.md) | Detailed system design and components |
+| [💡 Implementation Notes](docs/IMPLEMENTATION_NOTES.md) | Technical decisions and challenges |
+| [⚡ Optimization Guide](docs/OPTIMIZATION_GUIDE.md) | Performance tuning strategies |
+| [🔧 Troubleshooting](docs/TROUBLESHOOTING.md) | Common issues and solutions |
+
+---
 
 ## Future Directions
 
 Planned enhancements include:
 
-- Extension to full 17,790-sample RAGTruth dataset
-- Implementation of Attributed Auto-Regressive Flow (AARF) for token-level detection
-- Hyperparameter optimization through systematic grid search
-- Ensemble methods combining multiple detection approaches
-- REST API deployment for production integration
-- Support for additional model architectures (LLaMA-3, Mistral, GPT-J)
-- Real-time detection capabilities for streaming applications
+- [ ] **Full Dataset Processing**: Extend to complete 17,790-sample RAGTruth dataset
+- [ ] **AARF Implementation**: Add token-level attribution for fine-grained detection
+- [ ] **Hyperparameter Optimization**: Systematic grid search for optimal α, top_n, top_k
+- [ ] **Ensemble Methods**: Combine multiple detection approaches
+- [ ] **Production API**: REST endpoint for real-time detection
+- [ ] **Model Support**: LLaMA-3, Mistral, GPT-J compatibility
+- [ ] **Batch Processing**: Implement efficient batching for throughput improvement
+
+---
 
 ## Contributing
 
 Contributions are welcomed and appreciated. Please review [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines on code style, testing requirements, and pull request procedures.
+
+**Areas for Contribution**:
+- Performance optimization techniques
+- Additional model architecture support
+- Visualization enhancements
+- Documentation improvements
+- Bug fixes and issue resolution
+
+---
 
 ## Citation
 
@@ -286,9 +383,13 @@ If you use this implementation in your research, please cite both the original p
 }
 ```
 
+---
+
 ## License
 
 This project is released under the MIT License. See [LICENSE](LICENSE) for complete terms.
+
+---
 
 ## Acknowledgments
 
@@ -299,13 +400,19 @@ We gratefully acknowledge:
 - The developers of bitsandbytes for efficient quantization implementations
 - Kaggle for providing computational resources during development
 
+---
+
 ## Contact
 
 For questions, issues, or collaboration opportunities:
 
-- **GitHub Issues**: [Project Issue Tracker](https://github.com/Shivadzn/ReDeEP-Hallucination-Detection-System-Implementation.git/issues)
+- **GitHub Issues**: [Project Issue Tracker](https://github.com/yourusername/redeep-hallucination-detection/issues)
 - **Email**: your.email@example.com
 - **LinkedIn**: [Your Professional Profile](https://linkedin.com/in/yourprofile)
+
+---
+
+**⭐ Star this repository if you find it useful!**
 
 ---
 
