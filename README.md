@@ -9,7 +9,7 @@
 
 This repository implements the methodology presented in *Regressing Decoupled External context score and Parametric knowledge score: ReDeEP, a novel method that detects hallucinations by decoupling LLM's utilization of external context and parametric knowledge. Our experiments show that ReDeEP significantly improves RAG hallucination detection accuracy.* (ICLR 2025). The system detects hallucinations in Large Language Model outputs by analyzing internal attention patterns within Retrieval-Augmented Generation (RAG) pipelines.
 
-By extracting and analyzing attention patterns from 32 attention heads across 31 transformer layers, the system constructs feature representations that predict hallucination likelihood with meaningful accuracy improvements over baseline methods.
+By extracting and analyzing attention patterns from 32 attention heads across 32 transformer layers, the system constructs feature representations that predict hallucination likelihood with meaningful accuracy improvements over baseline methods.
 
 ---
 
@@ -171,7 +171,7 @@ from src.detection import HallucinationDetector
 from src.model_loader import load_model_quantized
 
 # Initialize model with 4-bit quantization
-model, tokenizer = load_model_quantized("meta-llama/Llama-2-7b-hf")
+model, tokenizer = load_model_quantized("meta-llama/Llama-2-7b")
 
 # Create detector instance
 detector = HallucinationDetector(model, tokenizer)
@@ -407,8 +407,8 @@ We gratefully acknowledge:
 For questions, issues, or collaboration opportunities:
 
 - **GitHub Issues**: [Project Issue Tracker](https://github.com/yourusername/redeep-hallucination-detection/issues)
-- **Email**: your.email@example.com
-- **LinkedIn**: [Your Professional Profile](https://linkedin.com/in/yourprofile)
+- **Email**: shivajaiswaldzn@gmail.com
+- **LinkedIn**: https://www.linkedin.com/in/shiva-gupta-a70190234/
 
 ---
 
