@@ -34,7 +34,7 @@ By extracting and analyzing attention patterns from 32 attention heads across 32
 | **F1-Score** | 0.260 | Balanced performance measure |
 | **PCC** | 0.323 | Moderate linear correlation |
 
-**Dataset**: 450 samples
+**Dataset**: 1159 samples
 
 ---
 
