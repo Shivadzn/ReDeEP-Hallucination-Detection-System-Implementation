@@ -27,18 +27,18 @@ By extracting and analyzing attention patterns from 32 attention heads across 32
 
 | Metric | Score | Interpretation |
 |--------|-------|----------------|
-| **AUC-ROC** | **0.689** | Moderate discriminative ability (+38% vs random) |
+| **AUC** | **0.689** | Moderate discriminative ability (+38% vs random) |
 | **Accuracy** | 44.35% | Overall classification correctness |
 | **Precision** | 19.48% | Optimized for imbalanced dataset |
 | **Recall** | 38.83% | Catches 113/291 hallucinations |
 | **F1-Score** | 0.260 | Balanced performance measure |
-| **Pearson r** | 0.323 | Moderate linear correlation |
+| **PCC** | 0.323 | Moderate linear correlation |
 
-**Dataset**: 1,159 samples (868 factual, 291 hallucinated)
+**Dataset**: 450 samples
 
 ---
 
-### ROC Curve Analysis
+### AUC-ROC Curve Analysis
 
 ![ROC Curve](log/kaggle/working/ReDeEP-ICLR/log/test_llama2_7B/visualizations/roc_curve.png)
 
